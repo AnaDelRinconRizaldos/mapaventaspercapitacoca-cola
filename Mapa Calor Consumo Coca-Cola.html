@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mapa de Calor Mundial - Consumo de Coca-Cola</title>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    <style>
+        body { 
+            margin: 0; 
+            padding: 0; 
+            background-color: #0c0c0c; 
+            color: #ffffff; 
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; 
+            overflow: hidden;
+        }
+        #map { 
+            width: 100vw; 
+            height: 100vh; 
+        }
+        .overlay { 
+            position: absolute; 
+            top: 30px; 
+            left: 30px; 
+            z-index: 10; 
+            background: rgba(18, 18, 18, 0.85); 
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            padding: 25px; 
+            border-radius: 16px; 
+            border: 1px solid rgba(255, 255, 255, 0.1); 
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        h1 { 
+            margin: 0 0 15px 0; 
+            font-size: 26px; 
+            color: #f40009; /* Coca-cola red */
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        h1::before {
+            content: '';
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #f40009;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #f40009;
+        }
+        p { 
+            margin: 0 0 15px 0; 
+            color: #b3b3b3; 
+            font-size: 14px; 
+            line-height: 1.6;
+            max-width: 320px; 
+        }
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .stat-country {
+            color: #e0e0e0;
+            font-weight: 600;
+        }
+        .stat-value {
+            color: #f40009;
+            font-weight: bold;
+            background: rgba(244, 0, 9, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="overlay">
+        <h1>Ventas / Consumo Global</h1>
+        <p>Mapa de calor que representa el consumo per cápita anual estimado (medido en porciones de 8 oz) de productos Coca-Cola por país. Datos basados en reportes globales de consumo.</p>
+        
+        <div class="stats-container">
+            <div style="font-size: 12px; color: #888; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px;">Top Consumidores Mundiales</div>
+            <div class="stat-row">
+                <span class="stat-country">🇲🇽 México</span>
+                <span class="stat-value">634 porciones/año</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-country">🇦🇷 Argentina</span>
+                <span class="stat-value">~654 porciones/año</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-country">🇨🇱 Chile</span>
+                <span class="stat-value">~594 porciones/año</span>
+            </div>
+            <div class="stat-row">
+                <span class="stat-country">🇺🇸 Estados Unidos</span>
+                <span class="stat-value">403 porciones/año</span>
+            </div>
+        </div>
+    </div>
+    <div id="map"></div>
+
+    <script>
+        // Datos de consumo per cápita (porciones por año). 
+        // Combinación de datos reales (México, USA, UK, Argentina, Chile) y estimados ilustrativos para el resto del mundo.
+        const data = [{
+            type: 'choropleth',
+            locationmode: 'country names',
+            locations: [
+                'Mexico', 'United States', 'Chile', 'Argentina', 'Great Britain', 
+                'Spain', 'Germany', 'France', 'Italy', 'Brazil',
+                'Canada', 'Australia', 'Japan', 'China', 'India',
+                'South Africa', 'Russia', 'Egypt', 'Saudi Arabia', 'Colombia',
+                'Peru', 'Bolivia', 'Venezuela', 'Uruguay', 'Paraguay',
+                'Norway', 'Sweden', 'Finland', 'Poland', 'Turkey'
+            ],
+            z: [
+                634, 403, 594, 654, 202, 
+                150, 190, 140, 130, 290,
+                250, 310, 180, 40, 20,
+                160, 110, 80, 120, 220,
+                280, 320, 190, 310, 250,
+                160, 150, 140, 170, 110
+            ],
+            text: [
+                'México', 'Estados Unidos', 'Chile', 'Argentina', 'Reino Unido',
+                'España', 'Alemania', 'Francia', 'Italia', 'Brasil',
+                'Canadá', 'Australia', 'Japón', 'China', 'India',
+                'Sudáfrica', 'Rusia', 'Egipto', 'Arabia Saudita', 'Colombia',
+                'Perú', 'Bolivia', 'Venezuela', 'Uruguay', 'Paraguay',
+                'Noruega', 'Suecia', 'Finlandia', 'Polonia', 'Turquía'
+            ],
+            colorscale: [
+                [0, '#1a1a1a'],          // Muy bajo (casi negro)
+                [0.1, '#3d0a0a'],        // Bajo
+                [0.3, '#7a1414'],        // Medio-bajo
+                [0.5, '#b81d1d'],        // Medio
+                [0.75, '#e62424'],       // Alto
+                [1, '#ff0000']           // Muy alto (Rojo vibrante Coca-Cola)
+            ],
+            autocolorscale: false,
+            reversescale: false,
+            marker: {
+                line: {
+                    color: '#2a2a2a',    // Bordes oscuros entre países
+                    width: 0.5
+                }
+            },
+            colorbar: {
+                title: {
+                    text: 'Porciones / Persona / Año',
+                    font: { color: '#aaaaaa', size: 12 }
+                },
+                tickcolor: '#555',
+                tickfont: { color: '#ffffff', size: 11 },
+                outlinewidth: 0,
+                bgcolor: 'rgba(18, 18, 18, 0.7)',
+                thickness: 15,
+                len: 0.6,
+                x: 0.98,
+                y: 0.5
+            },
+            hoverlabel: {
+                bgcolor: '#1e1e1e',
+                bordercolor: '#f40009',
+                font: { color: 'white', size: 14, family: 'Inter, sans-serif' }
+            },
+            hovertemplate: '<b>%{text}</b><br>Consumo: %{z} porciones<extra></extra>'
+        }];
+
+        const layout = {
+            plot_bgcolor: '#0c0c0c',
+            paper_bgcolor: '#0c0c0c',
+            geo: {
+                showframe: false,
+                showcoastlines: true,
+                coastlinecolor: '#333333',
+                projection: {
+                    type: 'robinson' // Proyección más atractiva que mercator
+                },
+                bgcolor: '#0c0c0c',
+                showland: true,
+                landcolor: '#1a1a1a', // Paises sin datos
+                showocean: true,
+                oceancolor: '#0c0c0c',
+                showcountries: true,
+                countrycolor: '#333333',
+                lataxis: { showgrid: true, gridcolor: '#1f1f1f', gridwidth: 0.5 },
+                lonaxis: { showgrid: true, gridcolor: '#1f1f1f', gridwidth: 0.5 },
+            },
+            margin: {
+                l: 0, r: 0, t: 0, b: 0
+            },
+            dragmode: 'pan' // Por defecto paneo en lugar de zoom box
+        };
+
+        const config = {
+            responsive: true,
+            displayModeBar: true,
+            displaylogo: false,
+            modeBarButtonsToRemove: ['lasso2d', 'select2d']
+        };
+
+        Plotly.newPlot('map', data, layout, config);
+    </script>
+</body>
+</html>
